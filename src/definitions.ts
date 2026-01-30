@@ -111,18 +111,12 @@ export interface CapgoIntercomPlugin {
   /**
    * Listen for when the Intercom window is shown.
    */
-  addListener(
-    eventName: 'windowDidShow',
-    listenerFunc: () => void,
-  ): Promise<PluginListenerHandle>;
+  addListener(eventName: 'windowDidShow', listenerFunc: () => void): Promise<PluginListenerHandle>;
 
   /**
    * Listen for when the Intercom window is hidden.
    */
-  addListener(
-    eventName: 'windowDidHide',
-    listenerFunc: () => void,
-  ): Promise<PluginListenerHandle>;
+  addListener(eventName: 'windowDidHide', listenerFunc: () => void): Promise<PluginListenerHandle>;
 
   /**
    * Remove all event listeners.

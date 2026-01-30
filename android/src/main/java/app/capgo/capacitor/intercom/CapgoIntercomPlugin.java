@@ -1,7 +1,6 @@
 package app.capgo.capacitor.intercom;
 
 import android.app.Application;
-import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -9,9 +8,8 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import io.intercom.android.sdk.Intercom;
 import io.intercom.android.sdk.IntercomSpace;
-import io.intercom.android.sdk.IntercomContent;
-import io.intercom.android.sdk.identity.Registration;
 import io.intercom.android.sdk.UserAttributes;
+import io.intercom.android.sdk.identity.Registration;
 import io.intercom.android.sdk.push.IntercomPushClient;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -215,7 +213,7 @@ public class CapgoIntercomPlugin extends Plugin {
             call.reject("carouselId is required");
             return;
         }
-        Intercom.client().presentContent(IntercomContent.Carousel.INSTANCE.withId(carouselId));
+        Intercom.client().displayCarousel(carouselId);
         call.resolve();
     }
 
@@ -226,7 +224,7 @@ public class CapgoIntercomPlugin extends Plugin {
             call.reject("articleId is required");
             return;
         }
-        Intercom.client().presentContent(IntercomContent.Article.INSTANCE.withId(articleId));
+        Intercom.client().displayArticle(articleId);
         call.resolve();
     }
 

@@ -51,7 +51,7 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
             queue: .main
         ) { notification in
             if let deviceToken = notification.object as? Data {
-                Intercom.setDeviceToken(deviceToken)
+                Intercom.setDeviceToken(deviceToken, completion: nil)
             }
         }
 
@@ -152,7 +152,7 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
             attributes.languageOverride = languageOverride
         }
         if let customAttributes = call.getObject("customAttributes") {
-            attributes.customAttributes = customAttributes as [AnyHashable: Any]
+            attributes.customAttributes = customAttributes as [String: Any]
         }
 
         Intercom.updateUser(with: attributes)
@@ -303,7 +303,7 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         if let tokenData = token.data(using: .utf8) {
-            Intercom.setDeviceToken(tokenData)
+            Intercom.setDeviceToken(tokenData, completion: nil)
         }
         call.resolve()
     }

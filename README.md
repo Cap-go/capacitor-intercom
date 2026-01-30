@@ -12,7 +12,7 @@ Intercom Capacitor plugin
 
 A fully re-implemented Intercom plugin for **Capacitor 8**, built to Capgo quality standards:
 
-- **Intercom iOS SDK 18+** - Latest Swift APIs with proper async handling
+- **Intercom iOS SDK 19+** - Latest Swift APIs with proper async handling
 - **Intercom Android SDK 17+** - Modern Intercom client integration
 - **Bug-free** - Fixed known bugs from community implementations (e.g. `hideInAppMessages` on Android)
 - **Cross-platform** - Consistent API across iOS and Android
@@ -52,11 +52,11 @@ Alternatively, you can initialize at runtime using `loadWithKeys()`.
 
 ### iOS
 
-The Intercom iOS SDK (`~> 18.0`) is included automatically via CocoaPods or Swift Package Manager.
+The Intercom iOS SDK (`~> 19.0`) is included automatically via CocoaPods or Swift Package Manager.
 
 ### Android
 
-The Intercom Android SDK (`17.2.0`) is included automatically via Gradle.
+The Intercom Android SDK (`17.4.2`) is included automatically via Gradle.
 
 ## API
 
