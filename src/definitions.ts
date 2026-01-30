@@ -84,6 +84,11 @@ export interface CapgoIntercomPlugin {
   displayArticle(options: IntercomArticleOptions): Promise<void>;
 
   /**
+   * Display a specific Intercom survey.
+   */
+  displaySurvey(options: IntercomSurveyOptions): Promise<void>;
+
+  /**
    * Set the HMAC for identity verification.
    */
   setUserHash(options: IntercomUserHashOptions): Promise<void>;
@@ -109,6 +114,11 @@ export interface CapgoIntercomPlugin {
   receivePush(notification: IntercomPushNotificationData): Promise<void>;
 
   /**
+   * Get the number of unread conversations for the current user.
+   */
+  getUnreadConversationCount(): Promise<IntercomUnreadCountResult>;
+
+  /**
    * Listen for when the Intercom window is shown.
    */
   addListener(eventName: 'windowDidShow', listenerFunc: () => void): Promise<PluginListenerHandle>;
@@ -117,6 +127,14 @@ export interface CapgoIntercomPlugin {
    * Listen for when the Intercom window is hidden.
    */
   addListener(eventName: 'windowDidHide', listenerFunc: () => void): Promise<PluginListenerHandle>;
+
+  /**
+   * Listen for changes in the unread conversation count.
+   */
+  addListener(
+    eventName: 'unreadCountDidChange',
+    listenerFunc: (data: IntercomUnreadCountResult) => void,
+  ): Promise<PluginListenerHandle>;
 
   /**
    * Remove all event listeners.
@@ -142,6 +160,16 @@ export interface IntercomUserUpdateOptions {
   phone?: string;
   languageOverride?: string;
   customAttributes?: { [key: string]: any };
+  companies?: IntercomCompany[];
+}
+
+export interface IntercomCompany {
+  companyId: string;
+  name?: string;
+  plan?: string;
+  monthlySpend?: number;
+  createdAt?: number;
+  customAttributes?: { [key: string]: any };
 }
 
 export interface IntercomLogEventOptions {
@@ -159,6 +187,10 @@ export interface IntercomCarouselOptions {
 
 export interface IntercomArticleOptions {
   articleId: string;
+}
+
+export interface IntercomSurveyOptions {
+  surveyId: string;
 }
 
 export interface IntercomUserHashOptions {
@@ -179,4 +211,8 @@ export interface IntercomPushTokenOptions {
 
 export interface IntercomPushNotificationData {
   [key: string]: any;
+}
+
+export interface IntercomUnreadCountResult {
+  count: number;
 }

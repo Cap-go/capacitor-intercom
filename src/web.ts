@@ -1,6 +1,6 @@
 import { WebPlugin } from '@capacitor/core';
 
-import type { CapgoIntercomPlugin } from './definitions';
+import type { CapgoIntercomPlugin, IntercomUnreadCountResult } from './definitions';
 
 export class CapgoIntercomWeb extends WebPlugin implements CapgoIntercomPlugin {
   async loadWithKeys(): Promise<void> {
@@ -67,6 +67,10 @@ export class CapgoIntercomWeb extends WebPlugin implements CapgoIntercomPlugin {
     throw this.unimplemented('Not implemented on web.');
   }
 
+  async displaySurvey(): Promise<void> {
+    throw this.unimplemented('Not implemented on web.');
+  }
+
   async setUserHash(): Promise<void> {
     throw this.unimplemented('Not implemented on web.');
   }
@@ -84,6 +88,10 @@ export class CapgoIntercomWeb extends WebPlugin implements CapgoIntercomPlugin {
   }
 
   async receivePush(): Promise<void> {
+    throw this.unimplemented('Not implemented on web.');
+  }
+
+  async getUnreadConversationCount(): Promise<IntercomUnreadCountResult> {
     throw this.unimplemented('Not implemented on web.');
   }
 }

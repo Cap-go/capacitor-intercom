@@ -78,13 +78,16 @@ The Intercom Android SDK (`17.4.2`) is included automatically via Gradle.
 * [`hideInAppMessages()`](#hideinappmessages)
 * [`displayCarousel(...)`](#displaycarousel)
 * [`displayArticle(...)`](#displayarticle)
+* [`displaySurvey(...)`](#displaysurvey)
 * [`setUserHash(...)`](#setuserhash)
 * [`setUserJwt(...)`](#setuserjwt)
 * [`setBottomPadding(...)`](#setbottompadding)
 * [`sendPushTokenToIntercom(...)`](#sendpushtokentointercom)
 * [`receivePush(...)`](#receivepush)
+* [`getUnreadConversationCount()`](#getunreadconversationcount)
 * [`addListener('windowDidShow', ...)`](#addlistenerwindowdidshow-)
 * [`addListener('windowDidHide', ...)`](#addlistenerwindowdidhide-)
+* [`addListener('unreadCountDidChange', ...)`](#addlistenerunreadcountdidchange-)
 * [`removeAllListeners()`](#removealllisteners)
 * [Interfaces](#interfaces)
 
@@ -299,6 +302,21 @@ Display a specific Intercom article.
 --------------------
 
 
+### displaySurvey(...)
+
+```typescript
+displaySurvey(options: IntercomSurveyOptions) => Promise<void>
+```
+
+Display a specific Intercom survey.
+
+| Param         | Type                                                                    |
+| ------------- | ----------------------------------------------------------------------- |
+| **`options`** | <code><a href="#intercomsurveyoptions">IntercomSurveyOptions</a></code> |
+
+--------------------
+
+
 ### setUserHash(...)
 
 ```typescript
@@ -374,6 +392,19 @@ Handle a received Intercom push notification.
 --------------------
 
 
+### getUnreadConversationCount()
+
+```typescript
+getUnreadConversationCount() => Promise<IntercomUnreadCountResult>
+```
+
+Get the number of unread conversations for the current user.
+
+**Returns:** <code>Promise&lt;<a href="#intercomunreadcountresult">IntercomUnreadCountResult</a>&gt;</code>
+
+--------------------
+
+
 ### addListener('windowDidShow', ...)
 
 ```typescript
@@ -404,6 +435,24 @@ Listen for when the Intercom window is hidden.
 | ------------------ | ---------------------------- |
 | **`eventName`**    | <code>'windowDidHide'</code> |
 | **`listenerFunc`** | <code>() =&gt; void</code>   |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+--------------------
+
+
+### addListener('unreadCountDidChange', ...)
+
+```typescript
+addListener(eventName: 'unreadCountDidChange', listenerFunc: (data: IntercomUnreadCountResult) => void) => Promise<PluginListenerHandle>
+```
+
+Listen for changes in the unread conversation count.
+
+| Param              | Type                                                                                               |
+| ------------------ | -------------------------------------------------------------------------------------------------- |
+| **`eventName`**    | <code>'unreadCountDidChange'</code>                                                                |
+| **`listenerFunc`** | <code>(data: <a href="#intercomunreadcountresult">IntercomUnreadCountResult</a>) =&gt; void</code> |
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
@@ -451,6 +500,19 @@ Remove all event listeners.
 | **`phone`**            | <code>string</code>                  |
 | **`languageOverride`** | <code>string</code>                  |
 | **`customAttributes`** | <code>{ [key: string]: any; }</code> |
+| **`companies`**        | <code>IntercomCompany[]</code>       |
+
+
+#### IntercomCompany
+
+| Prop                   | Type                                 |
+| ---------------------- | ------------------------------------ |
+| **`companyId`**        | <code>string</code>                  |
+| **`name`**             | <code>string</code>                  |
+| **`plan`**             | <code>string</code>                  |
+| **`monthlySpend`**     | <code>number</code>                  |
+| **`createdAt`**        | <code>number</code>                  |
+| **`customAttributes`** | <code>{ [key: string]: any; }</code> |
 
 
 #### IntercomLogEventOptions
@@ -482,6 +544,13 @@ Remove all event listeners.
 | **`articleId`** | <code>string</code> |
 
 
+#### IntercomSurveyOptions
+
+| Prop           | Type                |
+| -------------- | ------------------- |
+| **`surveyId`** | <code>string</code> |
+
+
 #### IntercomUserHashOptions
 
 | Prop       | Type                |
@@ -511,6 +580,13 @@ Remove all event listeners.
 
 
 #### IntercomPushNotificationData
+
+
+#### IntercomUnreadCountResult
+
+| Prop        | Type                |
+| ----------- | ------------------- |
+| **`count`** | <code>number</code> |
 
 
 #### PluginListenerHandle

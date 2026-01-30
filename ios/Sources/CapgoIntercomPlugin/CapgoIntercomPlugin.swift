@@ -23,16 +23,19 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "hideInAppMessages", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "displayCarousel", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "displayArticle", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "displaySurvey", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setUserHash", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setUserJwt", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setBottomPadding", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "sendPushTokenToIntercom", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "receivePush", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "receivePush", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getUnreadConversationCount", returnType: CAPPluginReturnPromise)
     ]
 
     private var showObserver: NSObjectProtocol?
     private var hideObserver: NSObjectProtocol?
     private var pushObserver: NSObjectProtocol?
+    private var unreadObserver: NSObjectProtocol?
 
     override public func load() {
         let apiKey = getConfig().getString("iosApiKey") ?? ""
@@ -70,6 +73,15 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
         ) { [weak self] _ in
             self?.notifyListeners("windowDidHide", data: [:])
         }
+
+        unreadObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name.IntercomUnreadConversationCountDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            let count = Intercom.unreadConversationCount()
+            self?.notifyListeners("unreadCountDidChange", data: ["count": count])
+        }
     }
 
     deinit {
@@ -80,6 +92,9 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
             NotificationCenter.default.removeObserver(obs)
         }
         if let obs = pushObserver {
+            NotificationCenter.default.removeObserver(obs)
+        }
+        if let obs = unreadObserver {
             NotificationCenter.default.removeObserver(obs)
         }
     }
@@ -153,6 +168,33 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         if let customAttributes = call.getObject("customAttributes") {
             attributes.customAttributes = customAttributes as [String: Any]
+        }
+
+        if let companiesArray = call.getArray("companies") as? [[String: Any]] {
+            var companies: [ICMCompany] = []
+            for companyData in companiesArray {
+                let company = ICMCompany()
+                if let companyId = companyData["companyId"] as? String {
+                    company.companyId = companyId
+                }
+                if let name = companyData["name"] as? String {
+                    company.name = name
+                }
+                if let plan = companyData["plan"] as? String {
+                    company.plan = plan
+                }
+                if let monthlySpend = companyData["monthlySpend"] as? NSNumber {
+                    company.monthlySpend = monthlySpend
+                }
+                if let createdAt = companyData["createdAt"] as? Double {
+                    company.createdAt = Date(timeIntervalSince1970: createdAt)
+                }
+                if let customAttrs = companyData["customAttributes"] as? [String: Any] {
+                    company.customAttributes = customAttrs
+                }
+                companies.append(company)
+            }
+            attributes.companies = companies
         }
 
         Intercom.updateUser(with: attributes)
@@ -263,6 +305,18 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
+    @objc func displaySurvey(_ call: CAPPluginCall) {
+        guard let surveyId = call.getString("surveyId") else {
+            call.reject("surveyId is required")
+            return
+        }
+
+        DispatchQueue.main.async {
+            Intercom.presentContent(.survey(id: surveyId))
+            call.resolve()
+        }
+    }
+
     @objc func setUserHash(_ call: CAPPluginCall) {
         guard let hmac = call.getString("hmac") else {
             call.reject("hmac is required")
@@ -279,7 +333,6 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        // Use token-based auth
         Intercom.setUserHash(jwt)
         call.resolve()
     }
@@ -310,5 +363,10 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func receivePush(_ call: CAPPluginCall) {
         call.resolve()
+    }
+
+    @objc func getUnreadConversationCount(_ call: CAPPluginCall) {
+        let count = Intercom.unreadConversationCount()
+        call.resolve(["count": count])
     }
 }

@@ -1,13 +1,16 @@
 package app.capgo.capacitor.intercom;
 
 import android.app.Application;
+import android.util.Log;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import io.intercom.android.sdk.Company;
 import io.intercom.android.sdk.Intercom;
 import io.intercom.android.sdk.IntercomSpace;
+import io.intercom.android.sdk.UnreadConversationCountListener;
 import io.intercom.android.sdk.UserAttributes;
 import io.intercom.android.sdk.identity.Registration;
 import io.intercom.android.sdk.push.IntercomPushClient;
@@ -23,28 +26,52 @@ import org.json.JSONObject;
 @CapacitorPlugin(name = "CapgoIntercom")
 public class CapgoIntercomPlugin extends Plugin {
 
+    private static final String TAG = "CapgoIntercom";
     private final IntercomPushClient intercomPushClient = new IntercomPushClient();
+    private UnreadConversationCountListener unreadListener;
 
     @Override
     public void load() {
-        String apiKey = getConfig().getString("androidApiKey", "");
-        String appId = getConfig().getString("androidAppId", "");
+        try {
+            String apiKey = getConfig().getString("androidApiKey", "");
+            String appId = getConfig().getString("androidAppId", "");
 
-        if (apiKey != null && !apiKey.isEmpty() && appId != null && !appId.isEmpty()) {
-            Application app = (Application) getContext().getApplicationContext();
-            Intercom.initialize(app, apiKey, appId);
+            if (apiKey != null && !apiKey.isEmpty() && appId != null && !appId.isEmpty()) {
+                Application app = (Application) getContext().getApplicationContext();
+                Intercom.initialize(app, apiKey, appId);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to initialize Intercom: " + e.getMessage(), e);
         }
+
+        unreadListener = (unreadCount) -> {
+            JSObject data = new JSObject();
+            data.put("count", unreadCount);
+            notifyListeners("unreadCountDidChange", data);
+        };
+        Intercom.client().addUnreadConversationCountListener(unreadListener);
     }
 
     @Override
     public void handleOnStart() {
-        // Re-initialize on start for safety
-        String apiKey = getConfig().getString("androidApiKey", "");
-        String appId = getConfig().getString("androidAppId", "");
+        try {
+            String apiKey = getConfig().getString("androidApiKey", "");
+            String appId = getConfig().getString("androidAppId", "");
 
-        if (apiKey != null && !apiKey.isEmpty() && appId != null && !appId.isEmpty()) {
-            Application app = (Application) getContext().getApplicationContext();
-            Intercom.initialize(app, apiKey, appId);
+            if (apiKey != null && !apiKey.isEmpty() && appId != null && !appId.isEmpty()) {
+                Application app = (Application) getContext().getApplicationContext();
+                Intercom.initialize(app, apiKey, appId);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to re-initialize Intercom on start: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        if (unreadListener != null) {
+            Intercom.client().removeUnreadConversationCountListener(unreadListener);
+            unreadListener = null;
         }
     }
 
@@ -58,9 +85,13 @@ public class CapgoIntercomPlugin extends Plugin {
             return;
         }
 
-        Application app = (Application) getContext().getApplicationContext();
-        Intercom.initialize(app, apiKey, appId);
-        call.resolve();
+        try {
+            Application app = (Application) getContext().getApplicationContext();
+            Intercom.initialize(app, apiKey, appId);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("Failed to initialize Intercom: " + e.getMessage(), e);
+        }
     }
 
     @PluginMethod
@@ -121,6 +152,43 @@ public class CapgoIntercomPlugin extends Plugin {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 builder.withCustomAttribute(entry.getKey(), entry.getValue());
             }
+        }
+
+        try {
+            JSONArray companiesArray = call.getArray("companies");
+            if (companiesArray != null) {
+                for (int i = 0; i < companiesArray.length(); i++) {
+                    JSONObject companyData = companiesArray.getJSONObject(i);
+                    Company.Builder companyBuilder = new Company.Builder();
+
+                    if (companyData.has("companyId")) {
+                        companyBuilder.withCompanyId(companyData.getString("companyId"));
+                    }
+                    if (companyData.has("name")) {
+                        companyBuilder.withName(companyData.getString("name"));
+                    }
+                    if (companyData.has("plan")) {
+                        companyBuilder.withPlan(companyData.getString("plan"));
+                    }
+                    if (companyData.has("monthlySpend")) {
+                        companyBuilder.withMonthlySpend(companyData.getInt("monthlySpend"));
+                    }
+                    if (companyData.has("createdAt")) {
+                        companyBuilder.withCreatedAt(companyData.getLong("createdAt"));
+                    }
+                    if (companyData.has("customAttributes")) {
+                        JSONObject customAttrs = companyData.getJSONObject("customAttributes");
+                        Map<String, Object> attrsMap = mapFromJSON(JSObject.fromJSONObject(customAttrs));
+                        for (Map.Entry<String, Object> entry : attrsMap.entrySet()) {
+                            companyBuilder.withCustomAttribute(entry.getKey(), entry.getValue());
+                        }
+                    }
+
+                    builder.withCompany(companyBuilder.build());
+                }
+            }
+        } catch (JSONException e) {
+            Log.w(TAG, "Failed to parse companies: " + e.getMessage());
         }
 
         Intercom.client().updateUser(builder.build());
@@ -200,8 +268,6 @@ public class CapgoIntercomPlugin extends Plugin {
 
     @PluginMethod
     public void hideInAppMessages(PluginCall call) {
-        // Note: the community plugin had a bug here using setLauncherVisibility.
-        // This correctly uses setInAppMessageVisibility.
         Intercom.client().setInAppMessageVisibility(Intercom.Visibility.GONE);
         call.resolve();
     }
@@ -229,14 +295,29 @@ public class CapgoIntercomPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void displaySurvey(PluginCall call) {
+        String surveyId = call.getString("surveyId");
+        if (surveyId == null || surveyId.isEmpty()) {
+            call.reject("surveyId is required");
+            return;
+        }
+        Intercom.client().displaySurvey(surveyId);
+        call.resolve();
+    }
+
+    @PluginMethod
     public void setUserHash(PluginCall call) {
         String hmac = call.getString("hmac");
         if (hmac == null || hmac.isEmpty()) {
             call.reject("hmac is required");
             return;
         }
-        Intercom.client().setUserHash(hmac);
-        call.resolve();
+        try {
+            Intercom.client().setUserHash(hmac);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("Failed to set user hash: " + e.getMessage(), e);
+        }
     }
 
     @PluginMethod
@@ -246,8 +327,12 @@ public class CapgoIntercomPlugin extends Plugin {
             call.reject("jwt is required");
             return;
         }
-        Intercom.client().setUserHash(jwt);
-        call.resolve();
+        try {
+            Intercom.client().setUserHash(jwt);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("Failed to set user JWT: " + e.getMessage(), e);
+        }
     }
 
     @PluginMethod
@@ -291,6 +376,14 @@ public class CapgoIntercomPlugin extends Plugin {
             }
         }
         call.resolve();
+    }
+
+    @PluginMethod
+    public void getUnreadConversationCount(PluginCall call) {
+        int count = Intercom.client().getUnreadConversationCount();
+        JSObject result = new JSObject();
+        result.put("count", count);
+        call.resolve(result);
     }
 
     private static Map<String, Object> mapFromJSON(JSObject jsonObject) {
