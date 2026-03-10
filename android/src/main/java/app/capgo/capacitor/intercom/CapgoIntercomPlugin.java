@@ -29,6 +29,19 @@ public class CapgoIntercomPlugin extends Plugin {
     private static final String TAG = "CapgoIntercom";
     private final IntercomPushClient intercomPushClient = new IntercomPushClient();
     private UnreadConversationCountListener unreadListener;
+    private boolean intercomInitialized = false;
+
+    private void setupUnreadListener() {
+        if (unreadListener != null) {
+            return;
+        }
+        unreadListener = (unreadCount) -> {
+            JSObject data = new JSObject();
+            data.put("count", unreadCount);
+            notifyListeners("unreadCountDidChange", data);
+        };
+        Intercom.client().addUnreadConversationCountListener(unreadListener);
+    }
 
     @Override
     public void load() {
@@ -39,17 +52,12 @@ public class CapgoIntercomPlugin extends Plugin {
             if (apiKey != null && !apiKey.isEmpty() && appId != null && !appId.isEmpty()) {
                 Application app = (Application) getContext().getApplicationContext();
                 Intercom.initialize(app, apiKey, appId);
+                intercomInitialized = true;
+                setupUnreadListener();
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to initialize Intercom: " + e.getMessage(), e);
         }
-
-        unreadListener = (unreadCount) -> {
-            JSObject data = new JSObject();
-            data.put("count", unreadCount);
-            notifyListeners("unreadCountDidChange", data);
-        };
-        Intercom.client().addUnreadConversationCountListener(unreadListener);
     }
 
     @Override
@@ -61,6 +69,8 @@ public class CapgoIntercomPlugin extends Plugin {
             if (apiKey != null && !apiKey.isEmpty() && appId != null && !appId.isEmpty()) {
                 Application app = (Application) getContext().getApplicationContext();
                 Intercom.initialize(app, apiKey, appId);
+                intercomInitialized = true;
+                setupUnreadListener();
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to re-initialize Intercom on start: " + e.getMessage(), e);
@@ -88,6 +98,8 @@ public class CapgoIntercomPlugin extends Plugin {
         try {
             Application app = (Application) getContext().getApplicationContext();
             Intercom.initialize(app, apiKey, appId);
+            intercomInitialized = true;
+            setupUnreadListener();
             call.resolve();
         } catch (Exception e) {
             call.reject("Failed to initialize Intercom: " + e.getMessage(), e);
