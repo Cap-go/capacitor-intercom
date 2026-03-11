@@ -69,6 +69,53 @@ The Intercom iOS SDK (`~> 19.0`) is included automatically via CocoaPods or Swif
 
 The Intercom Android SDK (`17.4.2`) is included automatically via Gradle.
 
+#### Push Notifications
+
+Since Android only allows **one** `FirebaseMessagingService`, this plugin does **not** register its own. Instead it provides `IntercomFcmHelper` — a static helper you call from your app's service.
+
+1. Create your own `FirebaseMessagingService` in your app (e.g. `app/src/main/java/.../MyFirebaseMessagingService.java`):
+
+```java
+package com.your.app;
+
+import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
+import app.capgo.capacitor.intercom.IntercomFcmHelper;
+
+public class MyFirebaseMessagingService extends FirebaseMessagingService {
+
+    @Override
+    public void onMessageReceived(RemoteMessage remoteMessage) {
+        if (IntercomFcmHelper.isIntercomPush(remoteMessage)) {
+            IntercomFcmHelper.onMessageReceived(this, remoteMessage);
+        } else {
+            // Handle other push SDKs (e.g. @capacitor/push-notifications)
+            // or your own notification logic here
+        }
+    }
+
+    @Override
+    public void onNewToken(String token) {
+        IntercomFcmHelper.onNewToken(this, token);
+        // Forward token to other SDKs if needed
+    }
+}
+```
+
+2. Register it in your app's `AndroidManifest.xml`:
+
+```xml
+<service
+    android:name=".MyFirebaseMessagingService"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+    </intent-filter>
+</service>
+```
+
+This approach is compatible with any other Firebase plugin — you control the routing.
+
 ## API
 
 <docgen-index>
