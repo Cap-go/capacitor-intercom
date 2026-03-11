@@ -33,7 +33,9 @@ public class CapgoIntercomPlugin extends Plugin {
 
     private boolean requireInitialized(PluginCall call) {
         if (!intercomInitialized) {
-            call.reject("Intercom has not been initialized. Configure androidApiKey/androidAppId in the plugin config or call loadWithKeys() first.");
+            call.reject(
+                "Intercom has not been initialized. Configure androidApiKey/androidAppId in the plugin config or call loadWithKeys() first."
+            );
             return false;
         }
         return true;
