@@ -55,6 +55,7 @@ dependencies {
     annotationProcessor project(':capacitor-android')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "io.intercom.android:intercom-sdk:$intercomSdkVersion"
+    compileOnly "com.google.firebase:firebase-messaging:24.1.1"
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
