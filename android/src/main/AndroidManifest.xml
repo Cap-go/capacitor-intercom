@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <service
-            android:name=".IntercomMessagingService"
+            android:name="app.capgo.capacitor.intercom.IntercomMessagingService"
             android:exported="false">
             <intent-filter android:priority="100">
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
@@ -9,7 +9,7 @@
         </service>
 
         <provider
-            android:name=".IntercomInitProvider"
+            android:name="app.capgo.capacitor.intercom.IntercomInitProvider"
             android:authorities="${applicationId}.intercom-init"
             android:exported="false"
             android:initOrder="100" />

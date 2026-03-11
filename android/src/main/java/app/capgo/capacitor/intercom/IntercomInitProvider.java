@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 import io.intercom.android.sdk.Intercom;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import org.json.JSONObject;
 
@@ -36,18 +37,20 @@ public class IntercomInitProvider extends ContentProvider {
         Context context = getContext();
         if (context == null) return false;
 
-        try {
-            InputStream is = context.getAssets().open("capacitor.config.json");
-            byte[] buffer = new byte[is.available()];
-            is.read(buffer);
-            is.close();
+        try (InputStream is = context.getAssets().open("capacitor.config.json")) {
+            ByteArrayOutputStream result = new ByteArrayOutputStream();
+            byte[] buf = new byte[4096];
+            int len;
+            while ((len = is.read(buf)) != -1) {
+                result.write(buf, 0, len);
+            }
 
-            JSONObject config = new JSONObject(new String(buffer));
+            JSONObject config = new JSONObject(result.toString("UTF-8"));
             JSONObject plugins = config.optJSONObject("plugins");
-            if (plugins == null) return false;
+            if (plugins == null) return true;
 
             JSONObject intercomConfig = plugins.optJSONObject("CapgoIntercom");
-            if (intercomConfig == null) return false;
+            if (intercomConfig == null) return true;
 
             String apiKey = intercomConfig.optString("androidApiKey", "");
             String appId = intercomConfig.optString("androidAppId", "");
@@ -61,7 +64,7 @@ public class IntercomInitProvider extends ContentProvider {
             Log.w(TAG, "Could not auto-initialize Intercom: " + e.getMessage());
         }
 
-        return false;
+        return true;
     }
 
     @Override
