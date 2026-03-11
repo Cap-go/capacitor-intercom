@@ -29,6 +29,27 @@ public class CapgoIntercomPlugin extends Plugin {
     private static final String TAG = "CapgoIntercom";
     private final IntercomPushClient intercomPushClient = new IntercomPushClient();
     private UnreadConversationCountListener unreadListener;
+    private boolean intercomInitialized = false;
+
+    private boolean requireInitialized(PluginCall call) {
+        if (!intercomInitialized) {
+            call.reject("Intercom has not been initialized. Call loadWithKeys() first.");
+            return false;
+        }
+        return true;
+    }
+
+    private void setupUnreadListener() {
+        if (unreadListener != null) {
+            return;
+        }
+        unreadListener = (unreadCount) -> {
+            JSObject data = new JSObject();
+            data.put("count", unreadCount);
+            notifyListeners("unreadCountDidChange", data);
+        };
+        Intercom.client().addUnreadConversationCountListener(unreadListener);
+    }
 
     @Override
     public void load() {
@@ -39,17 +60,12 @@ public class CapgoIntercomPlugin extends Plugin {
             if (apiKey != null && !apiKey.isEmpty() && appId != null && !appId.isEmpty()) {
                 Application app = (Application) getContext().getApplicationContext();
                 Intercom.initialize(app, apiKey, appId);
+                intercomInitialized = true;
+                setupUnreadListener();
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to initialize Intercom: " + e.getMessage(), e);
         }
-
-        unreadListener = (unreadCount) -> {
-            JSObject data = new JSObject();
-            data.put("count", unreadCount);
-            notifyListeners("unreadCountDidChange", data);
-        };
-        Intercom.client().addUnreadConversationCountListener(unreadListener);
     }
 
     @Override
@@ -61,6 +77,8 @@ public class CapgoIntercomPlugin extends Plugin {
             if (apiKey != null && !apiKey.isEmpty() && appId != null && !appId.isEmpty()) {
                 Application app = (Application) getContext().getApplicationContext();
                 Intercom.initialize(app, apiKey, appId);
+                intercomInitialized = true;
+                setupUnreadListener();
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to re-initialize Intercom on start: " + e.getMessage(), e);
@@ -69,7 +87,7 @@ public class CapgoIntercomPlugin extends Plugin {
 
     @Override
     protected void handleOnDestroy() {
-        if (unreadListener != null) {
+        if (unreadListener != null && intercomInitialized) {
             Intercom.client().removeUnreadConversationCountListener(unreadListener);
             unreadListener = null;
         }
@@ -88,6 +106,8 @@ public class CapgoIntercomPlugin extends Plugin {
         try {
             Application app = (Application) getContext().getApplicationContext();
             Intercom.initialize(app, apiKey, appId);
+            intercomInitialized = true;
+            setupUnreadListener();
             call.resolve();
         } catch (Exception e) {
             call.reject("Failed to initialize Intercom: " + e.getMessage(), e);
@@ -96,6 +116,7 @@ public class CapgoIntercomPlugin extends Plugin {
 
     @PluginMethod
     public void registerIdentifiedUser(PluginCall call) {
+        if (!requireInitialized(call)) return;
         String userId = call.getString("userId");
         String email = call.getString("email");
 
@@ -113,12 +134,14 @@ public class CapgoIntercomPlugin extends Plugin {
 
     @PluginMethod
     public void registerUnidentifiedUser(PluginCall call) {
+        if (!requireInitialized(call)) return;
         Intercom.client().registerUnidentifiedUser();
         call.resolve();
     }
 
     @PluginMethod
     public void updateUser(PluginCall call) {
+        if (!requireInitialized(call)) return;
         UserAttributes.Builder builder = new UserAttributes.Builder();
 
         String userId = call.getString("userId");
@@ -197,12 +220,14 @@ public class CapgoIntercomPlugin extends Plugin {
 
     @PluginMethod
     public void logout(PluginCall call) {
+        if (!requireInitialized(call)) return;
         Intercom.client().logout();
         call.resolve();
     }
 
     @PluginMethod
     public void logEvent(PluginCall call) {
+        if (!requireInitialized(call)) return;
         String name = call.getString("name");
         if (name == null || name.isEmpty()) {
             call.reject("Event name is required");
@@ -221,12 +246,14 @@ public class CapgoIntercomPlugin extends Plugin {
 
     @PluginMethod
     public void displayMessenger(PluginCall call) {
+        if (!requireInitialized(call)) return;
         Intercom.client().present();
         call.resolve();
     }
 
     @PluginMethod
     public void displayMessageComposer(PluginCall call) {
+        if (!requireInitialized(call)) return;
         String message = call.getString("message");
         if (message == null) {
             call.reject("message is required");
@@ -238,42 +265,49 @@ public class CapgoIntercomPlugin extends Plugin {
 
     @PluginMethod
     public void displayHelpCenter(PluginCall call) {
+        if (!requireInitialized(call)) return;
         Intercom.client().present(IntercomSpace.HelpCenter);
         call.resolve();
     }
 
     @PluginMethod
     public void hideMessenger(PluginCall call) {
+        if (!requireInitialized(call)) return;
         Intercom.client().hideIntercom();
         call.resolve();
     }
 
     @PluginMethod
     public void displayLauncher(PluginCall call) {
+        if (!requireInitialized(call)) return;
         Intercom.client().setLauncherVisibility(Intercom.Visibility.VISIBLE);
         call.resolve();
     }
 
     @PluginMethod
     public void hideLauncher(PluginCall call) {
+        if (!requireInitialized(call)) return;
         Intercom.client().setLauncherVisibility(Intercom.Visibility.GONE);
         call.resolve();
     }
 
     @PluginMethod
     public void displayInAppMessages(PluginCall call) {
+        if (!requireInitialized(call)) return;
         Intercom.client().setInAppMessageVisibility(Intercom.Visibility.VISIBLE);
         call.resolve();
     }
 
     @PluginMethod
     public void hideInAppMessages(PluginCall call) {
+        if (!requireInitialized(call)) return;
         Intercom.client().setInAppMessageVisibility(Intercom.Visibility.GONE);
         call.resolve();
     }
 
     @PluginMethod
     public void displayCarousel(PluginCall call) {
+        if (!requireInitialized(call)) return;
         String carouselId = call.getString("carouselId");
         if (carouselId == null || carouselId.isEmpty()) {
             call.reject("carouselId is required");
@@ -285,6 +319,7 @@ public class CapgoIntercomPlugin extends Plugin {
 
     @PluginMethod
     public void displayArticle(PluginCall call) {
+        if (!requireInitialized(call)) return;
         String articleId = call.getString("articleId");
         if (articleId == null || articleId.isEmpty()) {
             call.reject("articleId is required");
@@ -296,6 +331,7 @@ public class CapgoIntercomPlugin extends Plugin {
 
     @PluginMethod
     public void displaySurvey(PluginCall call) {
+        if (!requireInitialized(call)) return;
         String surveyId = call.getString("surveyId");
         if (surveyId == null || surveyId.isEmpty()) {
             call.reject("surveyId is required");
@@ -307,6 +343,7 @@ public class CapgoIntercomPlugin extends Plugin {
 
     @PluginMethod
     public void setUserHash(PluginCall call) {
+        if (!requireInitialized(call)) return;
         String hmac = call.getString("hmac");
         if (hmac == null || hmac.isEmpty()) {
             call.reject("hmac is required");
@@ -322,6 +359,7 @@ public class CapgoIntercomPlugin extends Plugin {
 
     @PluginMethod
     public void setUserJwt(PluginCall call) {
+        if (!requireInitialized(call)) return;
         String jwt = call.getString("jwt");
         if (jwt == null || jwt.isEmpty()) {
             call.reject("jwt is required");
@@ -337,6 +375,7 @@ public class CapgoIntercomPlugin extends Plugin {
 
     @PluginMethod
     public void setBottomPadding(PluginCall call) {
+        if (!requireInitialized(call)) return;
         Double value = call.getDouble("value");
         if (value == null) {
             call.reject("value is required");
@@ -380,6 +419,7 @@ public class CapgoIntercomPlugin extends Plugin {
 
     @PluginMethod
     public void getUnreadConversationCount(PluginCall call) {
+        if (!requireInitialized(call)) return;
         int count = Intercom.client().getUnreadConversationCount();
         JSObject result = new JSObject();
         result.put("count", count);

@@ -52,6 +52,7 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':capacitor-android')
+    annotationProcessor project(':capacitor-android')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "io.intercom.android:intercom-sdk:$intercomSdkVersion"
     testImplementation "junit:junit:$junitVersion"
