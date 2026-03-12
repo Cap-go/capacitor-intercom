@@ -356,12 +356,20 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         if let tokenData = token.data(using: .utf8) {
-            Intercom.setDeviceToken(tokenData, completion: nil)
+            DispatchQueue.main.async {
+                Intercom.setDeviceToken(tokenData, completion: nil)
+            }
         }
         call.resolve()
     }
 
     @objc func receivePush(_ call: CAPPluginCall) {
+        let userInfo = call.options as? [AnyHashable: Any] ?? [:]
+        DispatchQueue.main.async {
+            if Intercom.isIntercomPushNotification(userInfo) {
+                Intercom.handlePushNotification(userInfo)
+            }
+        }
         call.resolve()
     }
 

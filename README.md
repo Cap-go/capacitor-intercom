@@ -65,6 +65,80 @@ Alternatively, you can initialize at runtime using `loadWithKeys()`.
 
 The Intercom iOS SDK (`~> 19.0`) is included automatically via CocoaPods or Swift Package Manager.
 
+#### Push Notifications
+
+1. **Disable Intercom's auto push integration** — Add this to your `Info.plist` to prevent conflicts with Capacitor's push handling:
+
+```xml
+<key>IntercomAutoIntegratePushNotifications</key>
+<false/>
+```
+
+2. **Forward the device token to Capacitor** — In your `AppDelegate.swift`:
+
+```swift
+import UIKit
+import Capacitor
+
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
+
+    var window: UIWindow?
+
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        return true
+    }
+
+    func application(_ application: UIApplication,
+                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        // Forward to Capacitor — the plugin's observer picks this up
+        // and sends the token to Intercom automatically
+        NotificationCenter.default.post(
+            name: .capacitorDidRegisterForRemoteNotifications,
+            object: deviceToken
+        )
+    }
+
+    func application(_ application: UIApplication,
+                     didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        NotificationCenter.default.post(
+            name: .capacitorDidFailToRegisterForRemoteNotifications,
+            object: error
+        )
+    }
+}
+```
+
+3. **Register for push and handle notification taps** — In your app's JavaScript:
+
+```typescript
+import { PushNotifications } from '@capacitor/push-notifications';
+import { CapgoIntercom as Intercom } from '@capgo/capacitor-intercom';
+
+// Request permission + register
+const perm = await PushNotifications.requestPermissions();
+if (perm.receive === 'granted') {
+  await PushNotifications.register();
+}
+
+// Auto-forward FCM token to Intercom
+PushNotifications.addListener('registration', async (token) => {
+  await Intercom.sendPushTokenToIntercom({ value: token.value });
+});
+
+// When user taps a notification, tell Intercom to open the conversation
+PushNotifications.addListener('pushNotificationActionPerformed', async (action) => {
+  const data = action.notification?.data;
+  // iOS uses 'intercom_push_type', Android uses 'receiver'
+  if (data?.intercom_push_type || data?.receiver === 'intercom_sdk') {
+    await Intercom.receivePush(data);
+  }
+});
+```
+
+> **Note:** The plugin automatically registers the APNs device token with Intercom when it detects `.capacitorDidRegisterForRemoteNotifications`. You must still upload your APNs Authentication Key (`.p8`) in the Firebase Console under **Project Settings → Cloud Messaging → APNs Authentication Key**.
+
 ### Android
 
 The Intercom Android SDK (`17.4.2`) is included automatically via Gradle.
