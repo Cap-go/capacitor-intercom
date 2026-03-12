@@ -2,6 +2,32 @@ import Foundation
 import Capacitor
 import Intercom
 
+private extension Data {
+    init?(hexString: String) {
+        let hex = hexString.replacingOccurrences(of: ["<", ">", " "], with: "")
+        guard hex.count.isMultiple(of: 2) else { return nil }
+        var data = Data(capacity: hex.count / 2)
+        var index = hex.startIndex
+        while index < hex.endIndex {
+            let nextIndex = hex.index(index, offsetBy: 2)
+            guard let byte = UInt8(hex[index..<nextIndex], radix: 16) else { return nil }
+            data.append(byte)
+            index = nextIndex
+        }
+        self = data
+    }
+}
+
+private extension String {
+    func replacingOccurrences(of targets: [String], with replacement: String) -> String {
+        var result = self
+        for target in targets {
+            result = result.replacingOccurrences(of: target, with: replacement)
+        }
+        return result
+    }
+}
+
 @objc(CapgoIntercomPlugin)
 public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "CapgoIntercomPlugin"
@@ -355,13 +381,23 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        if let tokenData = token.data(using: .utf8) {
+        guard let tokenData = Data(hexString: token) else {
+            call.reject("Invalid hex token string")
+            return
+        }
+        DispatchQueue.main.async {
             Intercom.setDeviceToken(tokenData, completion: nil)
         }
         call.resolve()
     }
 
     @objc func receivePush(_ call: CAPPluginCall) {
+        let userInfo = call.options as? [AnyHashable: Any] ?? [:]
+        DispatchQueue.main.async {
+            if Intercom.isIntercomPushNotification(userInfo) {
+                Intercom.handlePushNotification(userInfo)
+            }
+        }
         call.resolve()
     }
 
