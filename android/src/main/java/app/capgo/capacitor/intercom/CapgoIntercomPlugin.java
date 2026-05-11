@@ -368,7 +368,7 @@ public class CapgoIntercomPlugin extends Plugin {
             return;
         }
         try {
-            Intercom.client().setUserHash(jwt);
+            Intercom.client().setUserJwt(jwt);
             call.resolve();
         } catch (Exception e) {
             call.reject("Failed to set user JWT: " + e.getMessage(), e);
