@@ -80,7 +80,7 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
             queue: .main
         ) { notification in
             if let deviceToken = notification.object as? Data {
-                Intercom.setDeviceToken(deviceToken, completion: nil)
+                Intercom.setDeviceToken(deviceToken, failure: nil)
             }
         }
 
@@ -101,7 +101,7 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         unreadObserver = NotificationCenter.default.addObserver(
-            forName: NSNotification.Name.IntercomUnreadConversationCountDidChange,
+            forName: NSNotification.Name(rawValue: "IntercomUnreadConversationCountDidChangeNotification"),
             object: nil,
             queue: .main
         ) { [weak self] _ in
@@ -359,7 +359,7 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
 
-        Intercom.setUserHash(jwt)
+        Intercom.setUserJwt(jwt)
         call.resolve()
     }
 
@@ -386,7 +386,7 @@ public class CapgoIntercomPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
         DispatchQueue.main.async {
-            Intercom.setDeviceToken(tokenData, completion: nil)
+            Intercom.setDeviceToken(tokenData, failure: nil)
         }
         call.resolve()
     }
