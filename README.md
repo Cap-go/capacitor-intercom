@@ -20,7 +20,7 @@ Add Intercom chat, help center and in-app messages to your Capacitor app with th
 - **Setup and users**: `loadWithKeys()`, `registerIdentifiedUser()`, `registerUnidentifiedUser()`, `updateUser()` and `logout()`.
 - **Messenger**: `displayMessenger()`, `displayMessageComposer()`, `hideMessenger()` and launcher visibility controls.
 - **Content**: `displayHelpCenter()`, `displayArticle()` and `displayCarousel()`.
-- **Events**: `logEvent()` plus `windowDidShow`, `windowDidHide` and `unreadCountDidChange` listeners.
+- **Events**: `logEvent()`, the `unreadCountDidChange` listener, plus `windowDidShow` and `windowDidHide` on iOS.
 - **In-app messages**: `displayInAppMessages()` and `hideInAppMessages()`.
 - **Platforms**: iOS and Android. Uses the official Intercom SDKs. Not available on web.
 
