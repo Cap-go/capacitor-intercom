@@ -1,12 +1,28 @@
 # @capgo/capacitor-intercom
-<a href="https://capgo.app/"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-intercom" alt="Capgo - Instant updates for Capacitor" /></a>
+
+Add Intercom chat, help center and in-app messages to your Capacitor app with the native Intercom SDKs on iOS and Android.
+
+<a href="https://capgo.app/?ref=plugin_intercom"><img src="https://capgo.app/readme-banner.svg?repo=Cap-go/capacitor-intercom" alt="Capgo - Instant updates for Capacitor" /></a>
 
 <div align="center">
-  <h2><a href="https://capgo.app/?ref=plugin_intercom"> ➡️ Get Instant updates for your App with Capgo</a></h2>
-  <h2><a href="https://capgo.app/consulting/?ref=plugin_intercom"> Missing a feature? We'll build the plugin for you 💪</a></h2>
+  <p><b>Capgo</b>: open-source live updates for Ionic and Capacitor apps. Ship OTA fixes and features instantly, without waiting for app store review.</p>
+  <h2><a href="https://capgo.app/register/?ref=plugin_intercom">➡️ Get started for free</a></h2>
+  <p>14-day unlimited free trial. No credit card required</p>
+  <p><a href="https://capgo.app/consulting/?ref=plugin_intercom">Missing a feature? We'll build the plugin for you 💪</a></p>
 </div>
 
-Intercom Capacitor plugin
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Cap-go/capacitor-intercom/main/assets/github-social-preview.png" alt="@capgo/capacitor-intercom for Capacitor apps" width="300" />
+</p>
+
+## Key features
+
+- **Setup and users**: `loadWithKeys()`, `registerIdentifiedUser()`, `registerUnidentifiedUser()`, `updateUser()` and `logout()`.
+- **Messenger**: `displayMessenger()`, `displayMessageComposer()`, `hideMessenger()` and launcher visibility controls.
+- **Content**: `displayHelpCenter()`, `displayArticle()` and `displayCarousel()`.
+- **Events**: `logEvent()` plus `windowDidShow`, `windowDidHide` and `unreadCountDidChange` listeners.
+- **In-app messages**: `displayInAppMessages()` and `hideInAppMessages()`.
+- **Platforms**: iOS and Android. Uses the official Intercom SDKs. Not available on web.
 
 ## Why Capacitor Intercom?
 
@@ -81,14 +97,14 @@ The Intercom iOS SDK (`~> 19.0`) is included automatically via CocoaPods or Swif
 
 #### Push Notifications
 
-1. **Disable Intercom's auto push integration** — Add this to your `Info.plist` to prevent conflicts with Capacitor's push handling:
+1. **Disable Intercom's auto push integration**, Add this to your `Info.plist` to prevent conflicts with Capacitor's push handling:
 
 ```xml
 <key>IntercomAutoIntegratePushNotifications</key>
 <false/>
 ```
 
-2. **Forward the device token to Capacitor** — In your `AppDelegate.swift`:
+2. **Forward the device token to Capacitor**, In your `AppDelegate.swift`:
 
 ```swift
 import UIKit
@@ -106,7 +122,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication,
                      didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        // Forward to Capacitor — the plugin's observer picks this up
+        // Forward to Capacitor, the plugin's observer picks this up
         // and sends the token to Intercom automatically
         NotificationCenter.default.post(
             name: .capacitorDidRegisterForRemoteNotifications,
@@ -124,7 +140,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 ```
 
-3. **Register for push and handle notification taps** — In your app's JavaScript:
+3. **Register for push and handle notification taps**, In your app's JavaScript:
 
 ```typescript
 import { PushNotifications } from '@capacitor/push-notifications';
@@ -159,7 +175,7 @@ The Intercom Android SDK (`17.4.2`) is included automatically via Gradle.
 
 #### Push Notifications
 
-Since Android only allows **one** `FirebaseMessagingService`, this plugin does **not** register its own. Instead it provides `IntercomFcmHelper` — a static helper you call from your app's service.
+Since Android only allows **one** `FirebaseMessagingService`, this plugin does **not** register its own. Instead it provides `IntercomFcmHelper`, a static helper you call from your app's service.
 
 1. Create your own `FirebaseMessagingService` in your app (e.g. `app/src/main/java/.../MyFirebaseMessagingService.java`):
 
@@ -202,7 +218,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 </service>
 ```
 
-This approach is compatible with any other Firebase plugin — you control the routing.
+This approach is compatible with any other Firebase plugin, you control the routing.
 
 ## API
 
