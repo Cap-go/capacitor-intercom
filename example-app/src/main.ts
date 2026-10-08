@@ -31,6 +31,7 @@ const inputPushToken = document.getElementById('input-push-token') as HTMLInputE
 const inputPushPayload = document.getElementById('input-push-payload') as HTMLInputElement;
 
 let listenersActive = false;
+let listenersStarting = false;
 const listenerHandles: PluginListenerHandle[] = [];
 
 const stamp = (): string => new Date().toISOString().slice(11, 19);
@@ -78,31 +79,36 @@ const refreshUnreadChip = async (): Promise<void> => {
 };
 
 const startListeners = async (): Promise<void> => {
-  if (listenersActive) {
-    appendLog('Listeners', 'Already active');
+  if (listenersActive || listenersStarting) {
+    appendLog('Listeners', 'Already active or starting');
     return;
   }
 
-  listenerHandles.push(
-    await CapgoIntercom.addListener('windowDidShow', () => {
-      appendLog('Event windowDidShow', {});
-    }),
-  );
-  listenerHandles.push(
-    await CapgoIntercom.addListener('windowDidHide', () => {
-      appendLog('Event windowDidHide', {});
-    }),
-  );
-  listenerHandles.push(
-    await CapgoIntercom.addListener('unreadCountDidChange', (data) => {
-      setChip(unreadChip, `Unread: ${data.count}`, true);
-      appendLog('Event unreadCountDidChange', data);
-    }),
-  );
+  listenersStarting = true;
+  try {
+    listenerHandles.push(
+      await CapgoIntercom.addListener('windowDidShow', () => {
+        appendLog('Event windowDidShow', {});
+      }),
+    );
+    listenerHandles.push(
+      await CapgoIntercom.addListener('windowDidHide', () => {
+        appendLog('Event windowDidHide', {});
+      }),
+    );
+    listenerHandles.push(
+      await CapgoIntercom.addListener('unreadCountDidChange', (data) => {
+        setChip(unreadChip, `Unread: ${data.count}`, true);
+        appendLog('Event unreadCountDidChange', data);
+      }),
+    );
 
-  listenersActive = true;
-  setChip(listenerChip, 'Listeners on', true);
-  appendLog('Listeners', 'Started window and unread listeners');
+    listenersActive = true;
+    setChip(listenerChip, 'Listeners on', true);
+    appendLog('Listeners', 'Started window and unread listeners');
+  } finally {
+    listenersStarting = false;
+  }
 };
 
 const stopListeners = async (): Promise<void> => {
@@ -113,9 +119,22 @@ const stopListeners = async (): Promise<void> => {
   appendLog('Listeners', 'Removed all listeners');
 };
 
-platformChip.textContent = Capacitor.getPlatform();
-setChip(loadChip, 'Not loaded', false);
-void refreshUnreadChip();
+const bootstrap = async (): Promise<void> => {
+  platformChip.textContent = Capacitor.getPlatform();
+  setChip(loadChip, 'Not loaded', false);
+
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await CapacitorUpdater.notifyAppReady();
+    } catch (error) {
+      console.error('Capgo notifyAppReady failed', error);
+    }
+  }
+
+  await refreshUnreadChip();
+};
+
+void bootstrap();
 
 document.getElementById('btn-clear-log')?.addEventListener('click', () => {
   logEl.textContent = 'Log cleared.\n';
@@ -263,9 +282,3 @@ document.getElementById('btn-send-push-token')?.addEventListener('click', () =>
 document.getElementById('btn-receive-push')?.addEventListener('click', () =>
   runAction('receivePush', () => CapgoIntercom.receivePush(parseJsonObject(inputPushPayload.value))),
 );
-
-if (Capacitor.isNativePlatform()) {
-  CapacitorUpdater.notifyAppReady().catch((error) => {
-    console.error('Capgo notifyAppReady failed', error);
-  });
-}
