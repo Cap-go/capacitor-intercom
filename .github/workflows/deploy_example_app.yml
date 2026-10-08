@@ -52,7 +52,7 @@ jobs:
             BUNDLE_VERSION="${VERSION}-example.${RUN_NUMBER}.${RUN_ATTEMPT}"
           fi
           echo "bundle_version=${BUNDLE_VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Using bundle version: ${BUNDLE_VERSION}"
+          echo "Bundle version: ${BUNDLE_VERSION}"
 
       - name: Deploy to Capgo
         working-directory: example-app
