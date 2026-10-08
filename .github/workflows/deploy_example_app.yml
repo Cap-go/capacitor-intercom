@@ -54,18 +54,11 @@ jobs:
           echo "bundle_version=${BUNDLE_VERSION}" >> "$GITHUB_OUTPUT"
           echo "Using bundle version: ${BUNDLE_VERSION}"
 
-      - name: Capgo upload disabled notice
-        if: ${{ vars.CAPGO_EXAMPLE_UPLOAD_ENABLED != 'true' }}
-        run: |
-          echo "Skipping Capgo bundle upload."
-          echo "Set repository variable CAPGO_EXAMPLE_UPLOAD_ENABLED to true once app.capgo.intercom exists."
-
       - name: Deploy to Capgo
-        if: ${{ vars.CAPGO_EXAMPLE_UPLOAD_ENABLED == 'true' }}
         working-directory: example-app
         run: |
           bunx @capgo/cli@latest bundle upload app.capgo.intercom \
-            --bundle "${{ steps.bundle_version.outputs.bundle_version }}" \
+            --bundle "$BUNDLE_VERSION" \
             --path dist \
             --channel production \
             --package-json package.json,../package.json \
@@ -75,4 +68,5 @@ jobs:
             --ignore-checksum-check \
             --apikey "$CAPGO_TOKEN"
         env:
+          BUNDLE_VERSION: ${{ steps.bundle_version.outputs.bundle_version }}
           CAPGO_TOKEN: ${{ secrets.CAPGO_TOKEN }}
