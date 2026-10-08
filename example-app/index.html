@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <title>@capgo/capacitor-intercom Example</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <div class="brand-row">
+          <img class="brand-icon" src="/assets/capgo-icon.png" width="48" height="48" alt="Capgo" />
+          <div>
+            <p class="eyebrow">Capgo plugin example</p>
+            <h1>Intercom control panel</h1>
+          </div>
+        </div>
+        <p class="lead">
+          Exercise native Intercom flows from one screen. Enter your app ID and API keys, register a user, open support
+          surfaces, and watch unread counts update in the log below.
+        </p>
+        <div class="chip-row">
+          <span id="platform-chip" class="chip">Platform</span>
+          <span id="load-chip" class="chip chip-muted">Not loaded</span>
+          <span id="unread-chip" class="chip chip-muted">Unread: ?</span>
+          <span id="listener-chip" class="chip chip-muted">Listeners off</span>
+        </div>
+      </header>
+
+      <section class="panel">
+        <h2 class="panel-title">Load / boot</h2>
+        <p class="hint">Leave keys empty in git. Paste your Intercom app ID and platform keys when testing on device.</p>
+        <div class="field-grid">
+          <label class="field">
+            <span>App ID</span>
+            <input id="input-app-id" type="text" placeholder="Your Intercom app ID" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>iOS API key</span>
+            <input id="input-ios-key" type="password" placeholder="ios_sdk-..." autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>Android API key</span>
+            <input id="input-android-key" type="password" placeholder="android_sdk-..." autocomplete="off" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="btn-load" type="button">Load with keys</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">Users</h2>
+        <div class="field-grid">
+          <label class="field">
+            <span>User ID</span>
+            <input id="input-user-id" type="text" value="demo-user-001" />
+          </label>
+          <label class="field">
+            <span>Email</span>
+            <input id="input-email" type="email" value="demo@example.com" />
+          </label>
+          <label class="field">
+            <span>Name</span>
+            <input id="input-name" type="text" value="Demo User" />
+          </label>
+          <label class="field">
+            <span>Phone</span>
+            <input id="input-phone" type="tel" value="+15555550100" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="btn-register-identified" type="button">Register identified</button>
+          <button id="btn-register-unidentified" type="button" class="ghost">Register unidentified</button>
+          <button id="btn-update-user" type="button" class="ghost">Update user</button>
+          <button id="btn-logout" type="button" class="danger">Logout</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">Messenger and content</h2>
+        <div class="field-grid">
+          <label class="field">
+            <span>Composer message</span>
+            <input id="input-composer" type="text" value="Hello from the Capgo Intercom example app." />
+          </label>
+          <label class="field">
+            <span>Article ID</span>
+            <input id="input-article-id" type="text" value="123456" />
+          </label>
+          <label class="field">
+            <span>Carousel ID</span>
+            <input id="input-carousel-id" type="text" value="carousel-demo" />
+          </label>
+          <label class="field">
+            <span>Survey ID</span>
+            <input id="input-survey-id" type="text" value="survey-demo" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="btn-messenger" type="button">Open messenger</button>
+          <button id="btn-help-center" type="button" class="ghost">Help center</button>
+          <button id="btn-article" type="button" class="ghost">Show article</button>
+          <button id="btn-composer" type="button" class="ghost">Message composer</button>
+          <button id="btn-carousel" type="button" class="ghost">Show carousel</button>
+          <button id="btn-survey" type="button" class="ghost">Show survey</button>
+          <button id="btn-hide-messenger" type="button" class="ghost">Hide messenger</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">Launcher and in-app messages</h2>
+        <div class="actions">
+          <button id="btn-show-launcher" type="button">Show launcher</button>
+          <button id="btn-hide-launcher" type="button" class="ghost">Hide launcher</button>
+          <button id="btn-show-inapp" type="button" class="ghost">Show in-app messages</button>
+          <button id="btn-hide-inapp" type="button" class="ghost">Hide in-app messages</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">Events and unread</h2>
+        <div class="field-grid">
+          <label class="field">
+            <span>Event name</span>
+            <input id="input-event-name" type="text" value="capgo_intercom_demo" />
+          </label>
+          <label class="field field-wide">
+            <span>Event data (JSON)</span>
+            <input id="input-event-data" type="text" value='{"source":"example-app"}' />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="btn-log-event" type="button">Log event</button>
+          <button id="btn-unread-count" type="button" class="ghost">Get unread count</button>
+          <button id="btn-start-listeners" type="button" class="ghost">Start listeners</button>
+          <button id="btn-stop-listeners" type="button" class="ghost">Stop listeners</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">Security and layout</h2>
+        <div class="field-grid">
+          <label class="field">
+            <span>User HMAC</span>
+            <input id="input-hmac" type="text" placeholder="Identity verification HMAC" />
+          </label>
+          <label class="field">
+            <span>User JWT</span>
+            <input id="input-jwt" type="text" placeholder="Secure messenger JWT" />
+          </label>
+          <label class="field">
+            <span>Bottom padding (px)</span>
+            <input id="input-padding" type="number" value="0" min="0" step="1" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="btn-set-hash" type="button" class="ghost">Set user hash</button>
+          <button id="btn-set-jwt" type="button" class="ghost">Set user JWT</button>
+          <button id="btn-set-padding" type="button" class="ghost">Set bottom padding</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">Push (native)</h2>
+        <div class="field-grid">
+          <label class="field field-wide">
+            <span>Push token</span>
+            <input id="input-push-token" type="text" placeholder="FCM or APNs token" />
+          </label>
+          <label class="field field-wide">
+            <span>Push payload (JSON)</span>
+            <input id="input-push-payload" type="text" value='{"intercom":"push"}' />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="btn-send-push-token" type="button" class="ghost">Send push token</button>
+          <button id="btn-receive-push" type="button" class="ghost">Receive push</button>
+        </div>
+      </section>
+
+      <section class="panel log-panel">
+        <div class="log-header">
+          <h2 class="panel-title">Result log</h2>
+          <button id="btn-clear-log" type="button" class="ghost small">Clear</button>
+        </div>
+        <pre id="result-log" aria-live="polite">Ready. Actions and errors appear here.</pre>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
