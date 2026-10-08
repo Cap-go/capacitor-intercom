@@ -112,9 +112,13 @@ const startListeners = async (): Promise<void> => {
 };
 
 const stopListeners = async (): Promise<void> => {
+  while (listenersStarting) {
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
   await CapgoIntercom.removeAllListeners();
   listenerHandles.length = 0;
   listenersActive = false;
+  listenersStarting = false;
   setChip(listenerChip, 'Listeners off', false);
   appendLog('Listeners', 'Removed all listeners');
 };
